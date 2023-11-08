@@ -14,8 +14,10 @@
 
 from flask import Flask, jsonify
 import os
+import requests
+
 #
-from src.helper import github_request
+# from src.helper import github_request
 
 
 app = Flask(__name__)
@@ -23,18 +25,43 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-  pass#todo
+  return {}
 
 
 @app.route('/release')
 def release():
-  pass#todo
-
-
+  url = 'https://api.github.com/repos/pyenv/pyenv/releases'
+  GITHUB_API_KEY = os.environ.get('GITHUB_API_KEY')
+  header = {
+  "Authorization": f"Bearer {GITHUB_API_KEY}"
+  }
+  res = requests.get(url, header)
+  d = res.json()
+  kq =[]
+  for i in range(len(d)):  
+    created_at = d[i]['created_at']
+    tag_name = d[i]['tag_name']
+    body = d[i]['body']
+    kq.append({'created_at': created_at, 'tag_name': tag_name, 'body': body})
+  return jsonify(kq)
 @app.route('/most_3_recent/release')
 def most_3_recent__release():
-  pass#todo
+  url = 'https://api.github.com/repos/pyenv/pyenv/releases'
+  GITHUB_API_KEY = os.environ.get('GITHUB_API_KEY')
+  header = {
+  "Authorization": f"Bearer {GITHUB_API_KEY}"
+  }
+  res = requests.get(url, header)
+  d = res.json()
+  kq2 = list()
+  for new in (sorted((date['created_at'] for date in d),reverse=True)[:3]):
+    for vitri in range(len(d)):
+      if d[vitri]['created_at'] == new:
+        created_at = new
+        tag_name = d[vitri]['tag_name']
+        body = d[vitri]['body']
+        kq2.append({'created_at': created_at, 'tag_name': tag_name, 'body': body})
+  return (kq2)
 
-
-if __name__=='__main__':
-  app.run(debug=True, port=os.environ.get('PORT', 5000) )
+if __name__ == '__main__':
+  app.run(debug=True, port=os.environ.get('PORT', 5000))
